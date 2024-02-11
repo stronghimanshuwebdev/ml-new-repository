@@ -83,13 +83,14 @@ class DataIngestion:
                 labels=[1,2,3,4,5]
 
             )
+            logging.info(f"Splitting data into train test split")
             strat_train_set = None
-            strat_test_split = None
+            strat_test_set = None
             split = StratifiedShuffleSplit(n_splits=1,test_size=0.2,random_state=42)
 
             for train_index,test_index in split.split(housing_data_frame,housing_data_frame["income_cat"]):
                 strat_train_set = housing_data_frame.loc[train_index].drop("income_cat",axis=1)
-                strat_test_split = housing_data_frame.loc[test_index].drop(["income_cat"],axis=1)
+                strat_test_set = housing_data_frame.loc[test_index].drop(["income_cat"],axis=1)
 
             train_file_path = os.path.join(self.data_ingestion_config.ingested_train_dir,
                                            file_name)
@@ -98,10 +99,22 @@ class DataIngestion:
                                           file_name)
             if strat_train_set is not None:
                 os.makedirs(self.data_ingestion_config.ingested_train_dir,exist_ok=True)
+                logging.info(f"Exporting training dataset to file : [{train_file_path}]")
                 strat_train_set.to_csv(train_file_path,index=False)
 
-            if strat_test_split is not None:
+            if strat_test_set is not None:
                 os.makedirs(self.data_ingestion_config.ingested_test_dir,exist_ok=True)
+                logging.info(f"Exporting test dataset to file: [{test_file_path}]")
+                strat_test_set.to_csv(test_file_path,index=False)
+
+            data_ingestion_artifact = DataIngestionArtifact(train_file_path=train_file_path,
+                                  test_file_path=test_file_path,
+                                  is_ingested=True,
+                                  message = f"Data Ingestion Completed Successfully")
+            logging.info(f"Data Ingestion Artifact :[{data_ingestion_artifact}]")
+            return data_ingestion_artifact
+            
+
             
  
         except Exception as e:
@@ -114,5 +127,9 @@ class DataIngestion:
         try:
             tgz_file_path = self.download_housing_data()
             self.extract_tgz_file(tgz_file_path=tgz_file_path)
+            return self.split_data_as_train_test()
         except Exception as e:
             raise HousingException(e,sys) from e
+        
+    def __del__(self):
+        logging.info(f"{'='*20} Data Ingestion log COmpleted . {'='*20}\n\n")
