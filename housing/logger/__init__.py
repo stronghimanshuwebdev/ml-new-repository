@@ -4,16 +4,22 @@ import os
 
 LOGS_DIR = "housing_logs"
 
-CURRENT_TIME_STAMP = f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
+# Get current timestamp
+CURRENT_TIME_STAMP = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
+# Construct log file name
 LOG_FILE_NAME = f"log_{CURRENT_TIME_STAMP}.log"
 
+# Ensure logs directory exists
 os.makedirs(LOGS_DIR, exist_ok=True)
+
+# Construct full log file path
 LOG_FILE_PATH = os.path.join(LOGS_DIR, LOG_FILE_NAME)
 
+# Configure logging
 logging.basicConfig(
     filename=LOG_FILE_PATH,
-    filemode="w",
+    filemode="a",  # Append mode to avoid overwriting log files
     format='[%(asctime)s %(name)s - %(levelname)s - %(message)s]',
-    level=logging.INFO
+    level=logging.INFO  # Set logging level to INFO
 )
